@@ -8,14 +8,15 @@ import qutip
 import QDYN
 
 from two_node_slh import dagger
+from qnet.convert.to_qutip import convert_to_qutip
 
 
 def state(SYS, *numbers, fmt='qutip'):
     """Construct a state for a given QNET space by giving a quantum number for
     each sub-space"""
     states = []
-    assert len(numbers) == len(SYS.H.space.local_factors())
-    for i, hs in enumerate(SYS.H.space.local_factors()):
+    assert len(numbers) == len(SYS.H.space.local_factors)
+    for i, hs in enumerate(SYS.H.space.local_factors):
         states.append(qutip.basis(hs.dimension, numbers[i]))
     if fmt == 'qutip':
         return qutip.tensor(*states)
@@ -96,17 +97,17 @@ def make_qdyn_model(SYS, Delta, g, kappa, Sym1, Op1, Sym2, Op2, pulse1, pulse2,
     H_num = SYS.H.substitute(num_vals)
 
     # drift Hamiltonian
-    H0 = H_num.substitute({Sym1['Omega']:0, Sym2['Omega']:0}).to_qutip()
+    H0 = convert_to_qutip(H_num.substitute({Sym1['Omega']:0, Sym2['Omega']:0}))
 
     # control Hamiltonian (qubit 1)
-    H1_1 = H_num.substitute({Sym1['Omega']**2:0, Sym2['Omega']**2:0})\
-              .substitute({Sym1['Omega']:1, Sym2['Omega']:0})\
-              .to_qutip() - H0
+    H1_1 = convert_to_qutip(
+              H_num.substitute({Sym1['Omega']**2:0, Sym2['Omega']**2:0})
+              .substitute({Sym1['Omega']:1, Sym2['Omega']:0})) - H0
 
     # control Hamiltonian (qubit 2)
-    H1_2 = H_num.substitute({Sym1['Omega']**2:0, Sym2['Omega']**2:0})\
-              .substitute({Sym1['Omega']:0, Sym2['Omega']:1})\
-              .to_qutip() - H0
+    H1_2 = convert_to_qutip(
+              H_num.substitute({Sym1['Omega']**2:0, Sym2['Omega']**2:0})
+              .substitute({Sym1['Omega']:0, Sym2['Omega']:1})) - H0
 
     # Stark shift Hamiltonian (qubit 1)
     #H2_1 = H_num.substitute({Sym1['Omega']**2:1, Sym2['Omega']**2:0})\
@@ -118,7 +119,7 @@ def make_qdyn_model(SYS, Delta, g, kappa, Sym1, Op1, Sym2, Op2, pulse1, pulse2,
     #          .substitute({Sym1['Omega']:0, Sym2['Omega']:0}) \
     #          .to_qutip() - H0
 
-    L = SYS.L[0,0].substitute(num_vals).to_qutip()
+    L = convert_to_qutip(SYS.L[0,0].substitute(num_vals))
 
     model = QDYN.model.LevelModel()
 
@@ -161,8 +162,8 @@ def make_qdyn_model(SYS, Delta, g, kappa, Sym1, Op1, Sym2, Op2, pulse1, pulse2,
                         outfile='beta_pop.dat', exp_unit='dimensionless',
                         time_unit='microsec', col_label='P(0010)',
                         is_real=True)
-        Op_n1 = (dagger(Op1['a']) * Op1['a']).to_qutip()
-        Op_n2 = (dagger(Op2['a']) * Op2['a']).to_qutip()
+        Op_n1 = convert_to_qutip(dagger(Op1['a']) * Op1['a'])
+        Op_n2 = convert_to_qutip(dagger(Op2['a']) * Op2['a'])
         model.add_observable(Op_n1,
                         outfile='cavity_excitation.dat',
                         exp_unit='dimensionless',
