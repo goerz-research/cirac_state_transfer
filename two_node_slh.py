@@ -52,16 +52,16 @@ def qnet_node_system(node_index, n_cavity, zero_phi=True, keep_delta=False):
     HilAtom = LocalSpace('q%d' % int(node_index), basis=('g', 'e'))
     HilCavity = LocalSpace('c%d' % int(node_index), dimension=n_cavity)
     Sym = {}
-    Sym['Delta'] = symbols(r'Delta_{%s}' % node_index, real=True)
-    Sym['g'] = symbols(r'g_{%s}' % node_index, positive=True)
-    Sym['Omega'] = symbols(r'Omega_{%s}' % node_index)
+    Sym['Delta'] = symbols(r'Delta_%s' % node_index, real=True)
+    Sym['g'] = symbols(r'g_%s' % node_index, positive=True)
+    Sym['Omega'] = symbols(r'Omega_%s' % node_index)
     Sym['I'] = sympy.I
     Sym['kappa'] = sympy.symbols(r'kappa', positive=True)
     if not zero_phi:
-        Sym['phi'] = sympy.symbols(r'phi_{%s}' % node_index, real=True)
+        Sym['phi'] = sympy.symbols(r'phi_%s' % node_index, real=True)
         Sym['exp'] = sympy.exp
     if keep_delta:
-        Sym['delta'] = symbols(r'delta_{%s}' % node_index, real=True)
+        Sym['delta'] = symbols(r'delta_%s' % node_index, real=True)
     Op = {}
     Op['a'] = Destroy(hs=HilCavity)
     Op['|g><g|'] = LocalSigma('g', 'g', hs=HilAtom)
