@@ -7,6 +7,23 @@ from single_channel_slh import qnet_node_system, node_hamiltonian
 from qnet.algebra.circuit_algebra import (
     SLH, connect, identity_matrix, CircuitSymbol)
 
+def slh_map_2chan_chain(components, n_cavity):
+    n_nodes = len(components)
+    slh_map = {}
+    for i in range(n_nodes):
+        ind = i + 1
+        Sym, Op = qnet_node_system(node_index='%d' % ind,
+                                    n_cavity=n_cavity)
+        S = identity_matrix(2)
+        kappa_l, kappa_r = symbols("kappa_%dl, kappa_%dr" % (ind, ind),
+                                    positive=True)
+        L = [sympy.sqrt(2*kappa_l) * Op['a'],
+                sympy.sqrt(2*kappa_r) * Op['a']]
+        H = node_hamiltonian(Sym, Op)
+        slh_map[components[i]] = SLH(S, L, H)
+    return slh_map
+
+
 def setup_qnet_2chan_chain(n_cavity, n_nodes, slh=True, topology=None):
     """Set up a chain of JC system with two channels
 
@@ -38,28 +55,17 @@ def setup_qnet_2chan_chain(n_cavity, n_nodes, slh=True, topology=None):
         components.append(cur_node)
         if prev_node is not None:
             if topology in [None, 'FB']:
-                connections.append(((prev_node, 0), (cur_node, 0)))
-                connections.append(((cur_node, 1), (prev_node, 1)))
+                connections.append(((prev_node, 1), (cur_node, 0)))
+                connections.append(((cur_node, 0), (prev_node, 1)))
             else:
                 raise ValueError("Unknown topology: %s" % topology)
         prev_node = cur_node
     if topology == 'FB':
-        connections.append(((cur_node, 0), (cur_node, 1)))
+        connections.append(((cur_node, 1), (cur_node, 1)))
     circuit = connect(components, connections)
 
     if slh:
-        slh_map = {}
-        for i in range(n_nodes):
-            ind = i + 1
-            Sym, Op = qnet_node_system(node_index='%d' % ind,
-                                       n_cavity=n_cavity)
-            S = identity_matrix(2)
-            kappa_l, kappa_r = symbols("kappa_%dl, kappa_%dr" % (ind, ind),
-                                       positive=True)
-            L = [sympy.sqrt(2*kappa_l) * Op['a'],
-                 sympy.sqrt(2*kappa_r) * Op['a']]
-            H = node_hamiltonian(Sym, Op)
-            slh_map[components[i]] = SLH(S, L, H)
+        slh_map = slh_map_2chan_chain(components, n_cavity)
         return circuit.substitute(slh_map).toSLH()
     else:
         return circuit
